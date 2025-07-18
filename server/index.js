@@ -93,6 +93,9 @@ app.post('/send-receipt', requireAdminAuth, async (req, res) => {
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
 });
+app.get('/', (req, res) => {
+  res.send('Backend JUA is working!');
+});
 
 // Improved /auth-users with better error handling
 app.get('/auth-users', requireAdminAuth, async (req, res) => {
