@@ -2,7 +2,13 @@ const express = require('express');
 const router = express.Router();
 const sgMail = require('@sendgrid/mail');
 const { requireAdminAuth } = require('./authMiddleware');
-sgMail.setApiKey(process.env.SENDGRID_API_KEY || 'YOUR_SENDGRID_API_KEY');
+// Only set SendGrid API key if it's properly configured
+const sendgridApiKey = process.env.SENDGRID_API_KEY;
+if (sendgridApiKey && sendgridApiKey.startsWith('SG.')) {
+  sgMail.setApiKey(sendgridApiKey);
+} else {
+  console.log('SendGrid API key not configured or invalid. Email alerts will be disabled.');
+}
 
 // In-memory blocklist (for demo; use Redis/DB for production)
 const blockedIPs = new Set();

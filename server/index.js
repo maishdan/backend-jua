@@ -20,11 +20,19 @@ app.use(blocklistMiddleware);
 // Mount admin security endpoints
 app.use('/api', adminSecurityRouter);
 
-// CORS middleware to allow requests from the frontend (http://localhost:5173)
+// CORS middleware to allow requests from the frontend and Vercel
 app.use(cors({
-  origin: 'http://localhost:5173', // Allow frontend dev server
+  origin: [
+    'http://localhost:5173', // Allow frontend dev server
+    'http://localhost:3000', // Alternative dev port
+    'https://justicefrontend-syst.vercel.app' // Vercel deployment
+  ],
   credentials: true
 }));
+
+// Parse JSON request bodies
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Supabase setup
 const supabase = createClient(
@@ -373,6 +381,10 @@ app.get('/api/admin/session-logs', async (req, res) => {
   }
 });
 
+// Setup reCAPTCHA endpoint
+const { setupRecaptchaEndpoint } = require('./recaptchaEndpoint');
+setupRecaptchaEndpoint(app);
+
 app.listen(PORT, () => {
   console.log(`Receipt email server running on http://localhost:${PORT}`);
-}); 
+});

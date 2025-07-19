@@ -7,21 +7,27 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "express": "^5.1.0",
-    "cors": "^2.8.5",
-    "dotenv": "^17.2.0",
-    "@supabase/supabase-js": "^2.52.0",
-    "express-rate-limit": "^8.0.1",
-    "csurf": "^1.11.0",
-    "nodemailer": "^7.0.5",
-    "axios": "^1.10.0",
     "@sendgrid/mail": "^8.1.5",
-    "crypto": "^1.0.1"
+    "@supabase/supabase-js": "^2.52.0",
+    "axios": "^1.10.0",
+    "cors": "^2.8.5",
+    "crypto": "^1.0.1",
+    "csurf": "^1.11.0",
+    "dotenv": "^17.2.0",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.0.1",
+    "nodemailer": "^7.0.5"
   },
   "engines": {
     "node": ">=18.0.0"
   },
-  "keywords": ["express", "supabase", "backend", "security", "api"],
+  "keywords": [
+    "express",
+    "supabase",
+    "backend",
+    "security",
+    "api"
+  ],
   "author": "maishdan",
   "license": "MIT"
-} 
+}
