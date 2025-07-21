@@ -4,7 +4,8 @@ const axios = require('axios');
 function setupRecaptchaEndpoint(app) {
   app.post('/api/verify-recaptcha', async (req, res) => {
     try {
-      const token = req.body['g-recaptcha-response'];
+      // Accept both v2 and v3 field names
+      const token = req.body['g-recaptcha-response'] || req.body.token;
       const secretKey = '6Lf2HYgrAAAAAHvpe272LhCc6SfwXK_ak39tLBZl';
 
       console.log('reCAPTCHA verification request from IP:', req.ip);
@@ -19,54 +20,50 @@ function setupRecaptchaEndpoint(app) {
 
       // Verify with Google reCAPTCHA API
       const googleResponse = await axios.post(
-        `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${token}`
+        `https://www.google.com/recaptcha/api/siteverify`,
+        null,
+        {
+          params: {
+            secret: secretKey,
+            response: token,
+            remoteip: req.ip
+          }
+        }
       );
 
-      console.log('Google reCAPTCHA response:', {
-        success: googleResponse.data.success,
-        score: googleResponse.data.score,
-        action: googleResponse.data.action,
-        hostname: googleResponse.data.hostname,
-        errors: googleResponse.data['error-codes']
-      });
+      const data = googleResponse.data;
+      console.log('Google reCAPTCHA response:', data);
 
-      if (googleResponse.data.success) {
-        // Check if this is reCAPTCHA v3 (has score property)
-        if (googleResponse.data.score !== undefined) {
-          // reCAPTCHA v3 - check the score (0.0 is very likely a bot, 1.0 is very likely a human)
-          const score = googleResponse.data.score || 0.0;
-          const action = googleResponse.data.action || 'submit';
-          
-          // Temporarily lower threshold for testing (normally 0.5)
-          const threshold = 0.1; // Lowered for testing
-          
+      if (data.success) {
+        // v3: has score, v2: no score
+        if (typeof data.score !== 'undefined') {
+          // reCAPTCHA v3
+          const score = data.score || 0.0;
+          const action = data.action || 'submit';
+          const threshold = 0.3; // Set your threshold (0.5 is typical, 0.1 is very permissive)
+
           if (score >= threshold) {
-            // Log successful verification
             console.log('reCAPTCHA v3 verification successful for IP:', req.ip, 'Score:', score, 'Action:', action);
-            
             return res.status(200).json({ 
               success: true, 
               message: 'reCAPTCHA v3 verification passed',
-              score: score,
-              action: action,
+              score,
+              action,
               version: 'v3'
             });
           } else {
-            // Score too low - likely a bot
             console.log('reCAPTCHA v3 verification failed - low score for IP:', req.ip, 'Score:', score, 'Action:', action);
-            
             return res.status(400).json({ 
               success: false, 
               message: 'reCAPTCHA v3 verification failed - suspicious activity detected',
-              score: score,
-              action: action,
+              score,
+              action,
               errors: ['low-score']
             });
           }
         } else {
-          // reCAPTCHA v2 - success means user completed the challenge
+          // reCAPTCHA v2
           console.log('reCAPTCHA v2 verification successful for IP:', req.ip);
-          
           return res.status(200).json({ 
             success: true, 
             message: 'reCAPTCHA v2 verification passed',
@@ -75,19 +72,16 @@ function setupRecaptchaEndpoint(app) {
         }
       } else {
         // Log failed verification with more details
-        console.log('reCAPTCHA verification failed for IP:', req.ip, 'Errors:', googleResponse.data['error-codes']);
-        console.log('Full Google response:', googleResponse.data);
-        
+        console.log('reCAPTCHA verification failed for IP:', req.ip, 'Errors:', data['error-codes']);
         return res.status(400).json({ 
           success: false, 
           message: 'reCAPTCHA verification failed',
-          errors: googleResponse.data['error-codes'] || [],
-          details: googleResponse.data
+          errors: data['error-codes'] || [],
+          details: data
         });
       }
     } catch (err) {
       console.error('reCAPTCHA verification error:', err.message);
-      console.error('Full error:', err);
       return res.status(500).json({ 
         success: false, 
         message: 'Server error during reCAPTCHA verification',
