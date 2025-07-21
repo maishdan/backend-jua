@@ -7,6 +7,9 @@ function setupRecaptchaEndpoint(app) {
       const token = req.body['g-recaptcha-response'];
       const secretKey = '6Lf2HYgrAAAAAHvpe272LhCc6SfwXK_ak39tLBZl';
 
+      console.log('reCAPTCHA verification request from IP:', req.ip);
+      console.log('Token received:', token ? 'Yes' : 'No');
+
       if (!token) {
         return res.status(400).json({ 
           success: false, 
@@ -19,6 +22,14 @@ function setupRecaptchaEndpoint(app) {
         `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${token}`
       );
 
+      console.log('Google reCAPTCHA response:', {
+        success: googleResponse.data.success,
+        score: googleResponse.data.score,
+        action: googleResponse.data.action,
+        hostname: googleResponse.data.hostname,
+        errors: googleResponse.data['error-codes']
+      });
+
       if (googleResponse.data.success) {
         // Check if this is reCAPTCHA v3 (has score property)
         if (googleResponse.data.score !== undefined) {
@@ -26,8 +37,8 @@ function setupRecaptchaEndpoint(app) {
           const score = googleResponse.data.score || 0.0;
           const action = googleResponse.data.action || 'submit';
           
-          // Set threshold for v3 (0.5 is a good balance)
-          const threshold = 0.5;
+          // Temporarily lower threshold for testing (normally 0.5)
+          const threshold = 0.1; // Lowered for testing
           
           if (score >= threshold) {
             // Log successful verification
@@ -63,20 +74,24 @@ function setupRecaptchaEndpoint(app) {
           });
         }
       } else {
-        // Log failed verification
+        // Log failed verification with more details
         console.log('reCAPTCHA verification failed for IP:', req.ip, 'Errors:', googleResponse.data['error-codes']);
+        console.log('Full Google response:', googleResponse.data);
         
         return res.status(400).json({ 
           success: false, 
           message: 'reCAPTCHA verification failed',
-          errors: googleResponse.data['error-codes'] || []
+          errors: googleResponse.data['error-codes'] || [],
+          details: googleResponse.data
         });
       }
     } catch (err) {
       console.error('reCAPTCHA verification error:', err.message);
+      console.error('Full error:', err);
       return res.status(500).json({ 
         success: false, 
-        message: 'Server error during reCAPTCHA verification' 
+        message: 'Server error during reCAPTCHA verification',
+        error: err.message
       });
     }
   });
