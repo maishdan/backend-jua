@@ -25,9 +25,12 @@ app.use(cors({
   origin: [
     'http://localhost:5173', // Allow frontend dev server
     'http://localhost:3000', // Alternative dev port
-    'https://justicefrontend-syst.vercel.app' // Vercel deployment
+    'https://justicefrontend-syst.vercel.app', // Vercel deployment
+    'https://justice-ultimate-frontend-sys.vercel.app' // Current Vercel deployment URL
   ],
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
 // Parse JSON request bodies
