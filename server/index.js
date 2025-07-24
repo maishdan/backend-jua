@@ -410,10 +410,6 @@ app.get('/api/admin/session-logs', async (req, res) => {
   }
 });
 
-// Setup reCAPTCHA endpoint
-const { setupRecaptchaEndpoint } = require('./recaptchaEndpoint');
-setupRecaptchaEndpoint(app);
-
 app.listen(PORT, () => {
   console.log(`Receipt email server running on http://localhost:${PORT}`);
 });
