@@ -43,14 +43,46 @@ const supabase = createClient(
   process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5eXBkbWh4dWVoemRkdWRldXd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI2MDg1MTMsImV4cCI6MjA2ODE4NDUxM30.eFoatxJAJrIxMGvs4FVTnzDpOUsL-pdKM8VAsw7E10Y'
 );
 
-// Demo Gmail SMTP credentials (replace with your own for production)
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: 'justiceultimate.demo@gmail.com', // Replace with your email
-    pass: 'demo-password', // Replace with your app password
-  },
-});
+// Email setup: Prefer SendGrid if available, fallback to nodemailer
+let sendEmail;
+if (process.env.SENDGRID_API_KEY && process.env.SENDGRID_API_KEY.startsWith('SG.')) {
+  const sgMail = require('@sendgrid/mail');
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+  sendEmail = async ({ to, subject, html, attachments, from }) => {
+    await sgMail.send({
+      to,
+      from: from || process.env.EMAIL_FROM || 'justiceultimate.demo@gmail.com',
+      subject,
+      html,
+      attachments: attachments ? attachments.map(a => ({
+        content: a.content.toString('base64'),
+        filename: a.filename,
+        type: a.contentType,
+        disposition: 'attachment',
+      })) : undefined,
+    });
+  };
+  console.log('SendGrid email enabled.');
+} else {
+  const nodemailer = require('nodemailer');
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.GMAIL_USER || 'justiceultimate.demo@gmail.com',
+      pass: process.env.GMAIL_PASS || 'demo-password',
+    },
+  });
+  sendEmail = async ({ to, subject, html, attachments, from }) => {
+    await transporter.sendMail({
+      from: from || process.env.EMAIL_FROM || 'Justice Ultimate Automobiles <justiceultimate.demo@gmail.com>',
+      to,
+      subject,
+      html,
+      attachments,
+    });
+  };
+  console.log('Nodemailer (Gmail) email enabled.');
+}
 
 const SUPABASE_URL = 'https://tyypdmhxuehzddudeuww.supabase.co';
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5eXBkbWh4dWVoemRkdWRldXd3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MjYwODUxMywiZXhwIjoyMDY4MTg0NTEzfQ.ubs58n_A0Y70zpl5T9AqHplhsHi3c736hCHKxZC3ND0';
@@ -80,8 +112,7 @@ app.post('/send-receipt', requireAdminAuth, async (req, res) => {
     return res.status(400).json({ error: 'Missing required fields' });
   }
   try {
-    await transporter.sendMail({
-      from: 'Justice Ultimate Automobiles <justiceultimate.demo@gmail.com>',
+    await sendEmail({
       to,
       subject,
       html,
