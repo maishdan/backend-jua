@@ -20,18 +20,13 @@ app.use(blocklistMiddleware);
 // Mount admin security endpoints
 app.use('/api', adminSecurityRouter);
 
-// CORS middleware to allow requests from the frontend and Vercel
-app.use(cors({
-  origin: [
-    'http://localhost:5173', // Allow frontend dev server
-    'http://localhost:3000', // Alternative dev port
-    'https://justicefrontend-syst.vercel.app', // Vercel deployment
-    'https://justice-ultimate-frontend-sys.vercel.app' // Current Vercel deployment URL
-  ],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-}));
+// Global CORS middleware to allow all origins (or restrict as needed)
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*"); // Or specify your frontend URL
+  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+  next();
+});
 
 // Parse JSON request bodies
 app.use(express.json());
