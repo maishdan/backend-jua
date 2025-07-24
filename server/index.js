@@ -39,8 +39,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // Supabase setup
 const supabase = createClient(
-  process.env.SUPABASE_URL || 'https://tyypdmhxuehzddudeuww.supabase.co',
-  process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5eXBkbWh4dWVoemRkdWRldXd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI2MDg1MTMsImV4cCI6MjA2ODE4NDUxM30.eFoatxJAJrIxMGvs4FVTnzDpOUsL-pdKM8VAsw7E10Y'
+  process.env.SUPABASE_URL || 'https://gzmgfgcgytafngvliqqj.supabase.co',
+  process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd6bWdmZ2NneXRhZm5ndmxpcXFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNTQzODEsImV4cCI6MjA2ODgzMDM4MX0.8xGAFdz9I4q-FOMjSBLMSqGpPL-_7hHh-5gjzt3uvwM'
 );
 
 // Email setup: Prefer SendGrid if available, fallback to nodemailer
@@ -84,8 +84,8 @@ if (process.env.SENDGRID_API_KEY && process.env.SENDGRID_API_KEY.startsWith('SG.
   console.log('Nodemailer (Gmail) email enabled.');
 }
 
-const SUPABASE_URL = 'https://tyypdmhxuehzddudeuww.supabase.co';
-const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5eXBkbWh4dWVoemRkdWRldXd3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MjYwODUxMywiZXhwIjoyMDY4MTg0NTEzfQ.ubs58n_A0Y70zpl5T9AqHplhsHi3c736hCHKxZC3ND0';
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://gzmgfgcgytafngvliqqj.supabase.co';
+const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!SERVICE_ROLE_KEY) {
   console.warn('WARNING: SUPABASE_SERVICE_ROLE_KEY is not set. This endpoint will not work securely.');
